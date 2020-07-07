@@ -1,61 +1,31 @@
 package main
 
 import (
+	r "auto_qrcode/types"
 	"flag"
-	"fmt"
-	"io/ioutil"
-	"strconv"
-	"strings"
-	"sync"
-
-	qrcode "github.com/skip2/go-qrcode"
 )
 
-var wg sync.WaitGroup
-
-func CreateQrcode(url string, address string) {
-	// fmt.Println(address)
-	// var ss string
-	defer wg.Done()
-	defer func() {
-		err := recover()
-		if err != nil {
-			fmt.Println(err)
-		}
-	}()
-	err := qrcode.WriteFile(url, qrcode.Medium, 256, "qrcode/"+address+".png")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-}
 func main() {
 	var url string
 	var action int
+	var key string
+	var types string
+	argument := make(map[string]interface{})
 	flag.StringVar(&url, "u", "http://www.gzwea.com", "生成的url地址固定部，默认为：http://www.gzwea.com")
 	flag.IntVar(&action, "a", 0, "生成二给码时，名称的组合方式，0是按自增序号，1是按可变数据")
+	flag.StringVar(&key, "k", "", "生成的密钥")
+	flag.StringVar(&types, "t", "default", "加密的方式,默认为md5")
 	flag.Parse()
-	strFile, err := ioutil.ReadFile("data.txt")
-	if err != nil {
-		fmt.Println("data.txt文件读取错误")
-		return
+	argument["url"] = url
+	argument["action"] = action
+	argument["key"] = key
+	argument["types"] = types
+	switch types {
+	case "md5":
+		obj := r.Md5Controller{}
+		obj.Create(argument)
+	case "default":
+		obj := r.DefaultController{}
+		obj.Create(argument)
 	}
-	arr := strings.Split(strings.Replace(string(strFile), "\r", "", -1), "\n")
-
-	if action == 0 {
-		i := 1
-		for _, v := range arr {
-			wg.Add(1)
-			go CreateQrcode(url+v, strconv.Itoa(i))
-			i++
-		}
-	} else {
-		for _, v := range arr {
-			// fmt.Printf("%T\n", str)
-			wg.Add(1)
-			go CreateQrcode(url+v, v)
-		}
-	}
-	wg.Wait()
-	fmt.Println("创建完成")
 }
