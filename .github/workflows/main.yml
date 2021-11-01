@@ -27,7 +27,8 @@ jobs:
       # Runs a single command using the runners shell
       - name: Run a one-line script
         run: echo Hello, world!
-             ping www.baidu.com
+      - name: run ping
+        run: ping www.baidu.com
 
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
